@@ -4,14 +4,12 @@ namespace LivenessApi
 {
     public class HealthCheck : IHealthCheck
     {
+        public static bool Failing { get; internal set; }
+
         public Task<HealthCheckResult> CheckHealthAsync(
             HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            var isHealthy = false;
-
-            // ...
-
-            if (isHealthy)
+            if (!Failing)
             {
                 return Task.FromResult(
                     HealthCheckResult.Healthy("A healthy result."));

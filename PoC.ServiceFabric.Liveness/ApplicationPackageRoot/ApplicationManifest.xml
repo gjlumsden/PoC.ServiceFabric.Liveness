@@ -13,6 +13,15 @@
     <EnvironmentOverrides CodePackageRef="code">
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[LivenessApi_ASPNETCORE_ENVIRONMENT]" />
     </EnvironmentOverrides>
+    <Policies>
+      <CodePackagePolicy CodePackageRef="Code">
+        <Probes>
+          <Probe Type="Liveness" TimeoutSeconds="20" PeriodSeconds="5" InitialDelaySeconds="10" FailureThreshold="5" SuccessThreshold="5">
+            <HttpGet Path="/api/health-check" EndpointRef="ServiceEndpoint" />
+          </Probe>
+        </Probes>
+      </CodePackagePolicy>
+    </Policies>
   </ServiceManifestImport>
   <DefaultServices>
     <!-- The section below creates instances of service types, when an instance of this 
