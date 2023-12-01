@@ -11,6 +11,9 @@ using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Microsoft.ServiceFabric.Data;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LivenessApi
 {
@@ -47,16 +50,31 @@ namespace LivenessApi
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
                         builder.Services.AddSwaggerGen();
-                        builder.Services.AddHealthChecks().AddCheck<HealthCheck>("HealthCheck");
+                        builder.Services.AddHealthChecks()
+                                        .AddCheck<HealthCheck>("HealthCheck");
                         var app = builder.Build();
-                        if (app.Environment.IsDevelopment())
-                        {
+                        //Use Swagger in Production to enable easy testing of the liveness probe
                         app.UseSwagger();
                         app.UseSwaggerUI();
-                        }
                         app.UseAuthorization();
                         app.MapControllers();
-                        app.UseHealthChecks("/api/health-check");
+                        app.UseHealthChecks("/api/health-check", new HealthCheckOptions
+                        {
+                            ResultStatusCodes =
+                            {
+                                [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                                [HealthStatus.Degraded] = StatusCodes.Status500InternalServerError,
+                                [HealthStatus.Unhealthy] = StatusCodes.Status500InternalServerError
+                            },
+                            AllowCachingResponses = false,
+                            ResponseWriter = async (context, report) =>
+                            {
+                                await Task.FromResult(new ContentResult()
+                                {
+                                    StatusCode = context.Response.StatusCode
+                                });
+                            }
+                        });
                         return app;
 
                     }))

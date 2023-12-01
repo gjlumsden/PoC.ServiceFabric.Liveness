@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace LivenessApi.Controllers
 {
@@ -18,6 +19,12 @@ namespace LivenessApi.Controllers
         {
             HealthCheck.Failing = failing;
             return Accepted();
+        }
+
+        [HttpGet(Name = "GetFailure")]
+        public IActionResult Get()
+        {
+            return Ok($"Failing: {HealthCheck.Failing}, FailedChecks: {HealthCheck.FailedChecks}, Machine Name: {Environment.MachineName}");
         }
     }
 }
